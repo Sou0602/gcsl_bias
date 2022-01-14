@@ -223,17 +223,26 @@ class GCSL:
         #self.goal_side = 0
         goal_state = self.env.sample_goal()
         goal = self.env.extract_goal(goal_state)
-        if goal[0] < 0:
-            self.goal_side = -1
-        elif goal[0] > 0:
-            self.goal_side = 1
-        else:
-            self.goal_side = 0
+        state = self.env.reset()
+        if self.imbalanced_goals:
+            if goal[0] < 0:
+                self.goal_side = -1
+            elif goal[0] > 0:
+                self.goal_side = 1
+            else:
+                self.goal_side = 0
+        elif self.imb_init_dist:
+            if state[0] < 0:
+                self.init_side = -1
+            elif state[0] > 0:
+                self.init_side = 1
+            else:
+                self.init_side = 0
 
         states = []
         actions = []
        #print('goal_0_b',goal[0])
-        state = self.env.reset()
+
         #print('goal_0_a',goal[0])
         for t in range(self.max_path_length):
             if render:
