@@ -118,9 +118,11 @@ class GCSL:
         
         self.log_tensorboard = log_tensorboard and tensorboard_enabled
         self.summary_writer = None
-        self.imbalanced_goals = True
+        self.imbalanced_goals = False
         self.goal_side = 0
+        self.init_side = 0
         self.is_offline = True
+        self.imb_init_dist = True
 
         if self.is_offline:
             self.replay_buffer.max_buffer_size = 50000 #(current size at 20000)
@@ -176,7 +178,24 @@ class GCSL:
         states = []
         actions = []
         # print('goal_0_b',goal[0])
-        state = self.env.reset()
+        if self.imb_init_dist:
+            obs_low = self.env.observation_space.low.flatten()
+            obs_high = self.env.observation_space.high.flatten()
+            obs_avg = (obs_high + obs_low)/2
+            obs_avg_ = (obs_high - obs_low)/2
+            state = self.env.reset()
+            left = np.random.rand() < 0.8
+            if left:
+                state[0] = np.random.rand() * obs_avg_[0] + obs_low[0]
+                self.init_side = -1
+            else:
+                state[0] = obs_high[0] - np.random.rand() * obs_avg_[0]
+                self.init_side = 1
+
+            #update sampled  goal_state to a biased initial state
+            goal_state[0] = state[0]
+        else:
+            state = self.env_reset()
         # print('goal_0_a',goal[0])
         for t in range(self.max_path_length):
             if render:
@@ -412,6 +431,7 @@ class GCSL:
         all_goal_states = []
         all_actions = []
         goal_sides = np.zeros(eval_episodes)
+        init_sides = np.zeros(eval_episodes)
         final_dist_vec = np.zeros(eval_episodes)
         success_vec = np.zeros(eval_episodes)
 
@@ -423,25 +443,36 @@ class GCSL:
 
             final_dist = env.goal_distance(states[-1], goal_state)
             goal_sides[index] = self.goal_side
+            init_sides[index] = self.init_side
             final_dist_vec[index] = final_dist
             success_vec[index] = (final_dist < self.goal_threshold)
 
         all_states = np.stack(all_states)
         all_goal_states = np.stack(all_goal_states)
-        left = goal_sides < 0
-        right = goal_sides > 0
-        success_vec_left = success_vec[left]
-        n_left = len(success_vec_left)
-        success_vec_right = success_vec[right]
-        n_right = len(success_vec_right)
+        if self.imbalanced_goals:
+            left = goal_sides < 0
+            right = goal_sides > 0
+            success_vec_left = success_vec[left]
+            n_left = len(success_vec_left)
+            success_vec_right = success_vec[right]
+            n_right = len(success_vec_right)
+        if self.imb_init_dist:
+            left = init_sides < 0
+            right = init_sides > 0
+            success_vec_left = success_vec[left]
+            n_left = len(success_vec_left)
+            success_vec_right = success_vec[right]
+            n_right = len(success_vec_right)
+
 
         logger.record_tabular('%s num episodes'%prefix, eval_episodes)
         logger.record_tabular('%s avg final dist'%prefix,  np.mean(final_dist_vec))
         logger.record_tabular('%s success ratio'%prefix, np.mean(success_vec))
-        logger.record_tabular('%s success ratio_left'%prefix, np.mean(success_vec_left))
-        logger.record_tabular('%s success ratio_right' % prefix, np.mean(success_vec_right))
-        logger.record_tabular('%s n_left' % prefix, n_left)
-        logger.record_tabular('%s n_right' % prefix, n_right)
+        if self.imbalanced_goals or self.imb_init_dist:
+            logger.record_tabular('%s success ratio_left'%prefix, np.mean(success_vec_left))
+            logger.record_tabular('%s success ratio_right' % prefix, np.mean(success_vec_right))
+            logger.record_tabular('%s n_left' % prefix, n_left)
+            logger.record_tabular('%s n_right' % prefix, n_right)
         if self.summary_writer:
             self.summary_writer.add_scalar('%s/avg final dist'%prefix, np.mean(final_dist_vec), total_timesteps)
             self.summary_writer.add_scalar('%s/success ratio'%prefix,  np.mean(success_vec), total_timesteps)
@@ -494,4 +525,5 @@ class GCSL:
         '''''
         goal_state = self.env.sample_goal()
         goal = self.env.extract_goal(goal_state)
+        init = self.env.reset()
         pdb.set_trace()

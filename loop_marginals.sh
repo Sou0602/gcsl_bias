@@ -1,13 +1,13 @@
-#for s in 0 1 2
-#do 
-#    for e in pusher door
-#    do
-#	echo Environment $e Seed $s
-#        python experiments/gcsl_example.py -S $s -E $e &
-#	python experiments/gcsl_example_n11.py -S $s -E $e &
-#    done
-#    wait
-#done
+for s in 0 
+do 
+    for e in pusher door 
+    do
+	echo Environment $e Seed $s
+        python experiments/gcsl_example.py -S $s -E $e &
+	python experiments/gcsl_example_n11.py -S $s -E $e &
+    done
+    wait
+done
 
 #
 #for s in 1
@@ -35,12 +35,12 @@
 #done
 #wait
 
-for k in 0 1 2 3 4 5
-do
-	python experiments/gcsl_example_n11.py -K $k &
-	
-done
-wait
+#for k in 0 1 2 3 4 5
+#do
+#	python experiments/gcsl_example_n11.py -K $k &
+#	
+#done
+#wait
 
 
 
