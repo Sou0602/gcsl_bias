@@ -225,17 +225,33 @@ class GCSL:
 
         goal_state = self.env.sample_goal()
         goal = self.env.extract_goal(goal_state)
-        if goal[0] < 0:
-            self.goal_side = -1
-        elif goal[0] > 0:
-            self.goal_side = 1
-        else:
-            self.goal_side = 0
+        state = self.env.reset()
+        if self.imbalanced_goals:
+            g0_low = self.env.goal_space.low.flatten()[0]
+            g0_high = self.env.goal_space.high.flatten()[0]
+            g0_avg = (g0_high + g0_low) / 2
+            if goal[0] < g0_avg:
+                self.goal_side = -1
+            elif goal[0] > g0_avg:
+                self.goal_side = 1
+            else:
+                self.goal_side = 0
+        elif self.imb_init_dist:
+            obs_low = self.env.observation_space.low.flatten()
+            obs_high = self.env.observation_space.high.flatten()
+            obs_avg = (obs_high + obs_low) / 2
+            if state[0] < obs_avg[0]:
+                self.init_side = -1
+            elif state[0] > obs_avg[0]:
+                self.init_side = 1
+            else:
+                self.init_side = 0
+
 
         states = []
         actions = []
 
-        state = self.env.reset()
+
         for t in range(self.max_path_length):
             if render:
                 self.env.render()
