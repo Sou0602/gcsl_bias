@@ -33,7 +33,7 @@ def discretize_environment(env, env_params):
 def default_markov_policy(env, env_params):
     assert isinstance(env.action_space, Discrete)
     if env.action_space.n > 100: # Too large to maintain single action for each
-        policy_class = networks_n11.IndependentDiscretizedStochasticGoalPolicy
+        policy_class = networks_n11.IndependentDiscretizedStochasticGoalPolicy_m
     else:
         policy_class = networks_n11.DiscreteStochasticGoalPolicy_m
     return policy_class(

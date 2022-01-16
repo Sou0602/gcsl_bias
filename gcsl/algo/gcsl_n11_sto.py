@@ -121,7 +121,7 @@ class GCSL:
         self.log_tensorboard = log_tensorboard and tensorboard_enabled
         self.summary_writer = None
         self.imbalanced_goals = False
-        self.imb_init_dist = True
+        self.imb_init_dist = False
         self.goal_side = 0
         self.init_side = 0
         self.is_offline = True
@@ -144,6 +144,7 @@ class GCSL:
         nll = conditional_nll
         c_nll = self.policy.cond_loss
         m_nll = self.policy.marg_loss
+
 
         return torch.mean(nll * weights_torch) , torch.mean(c_nll * weights_torch) , torch.mean(m_nll * weights_torch)
 
@@ -199,7 +200,7 @@ class GCSL:
             # update sampled  goal_state to a biased initial state
             goal_state[0] = state[0]
         else:
-            state = self.env_reset()
+            state = self.env.reset()
         # print('goal_0_a',goal[0])
         for t in range(self.max_path_length):
             if render:
@@ -210,7 +211,7 @@ class GCSL:
             observation = self.env.observation(state)
             horizon = np.arange(self.max_path_length) >= (
                         self.max_path_length - 1 - t)  # Temperature encoding of horizon
-            action = self.policy.act_vectorized(observation[None], goal[None], horizon=horizon[None], greedy=greedy,
+            action = self.policy.act_vectorized_buffer(observation[None], goal[None], horizon=horizon[None], greedy=greedy,
                                                 noise=noise)[0]
 
             if not self.is_discrete_action:
@@ -398,7 +399,7 @@ class GCSL:
                         else:
                             self.replay_buffer.add_trajectory(states, actions, goal_state)
                 else:
-                    print('Not online')
+                    #print('Not online')
                     # Interact in environmenta according to exploration strategy.
                     if total_timesteps < self.explore_timesteps:
                         states, actions, goal_state = self.sample_trajectory_buffer(noise=1)

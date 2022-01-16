@@ -122,7 +122,7 @@ class GCSL:
         self.goal_side = 0
         self.init_side = 0
         self.is_offline = True
-        self.imb_init_dist = True
+        self.imb_init_dist = False
 
         if self.is_offline:
             self.replay_buffer.max_buffer_size = 50000 #(current size at 20000)
@@ -195,7 +195,7 @@ class GCSL:
             #update sampled  goal_state to a biased initial state
             goal_state[0] = state[0]
         else:
-            state = self.env_reset()
+            state = self.env.reset()
         # print('goal_0_a',goal[0])
         for t in range(self.max_path_length):
             if render:
