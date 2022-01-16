@@ -1,0 +1,2 @@
+Eval num episodes,Eval avg final dist,Eval success ratio,Eval mean final angle dist,Eval median final angle dist,Eval mean final angle moved,Eval median final angle moved,policy loss,timesteps,epoch time (s),total time (s),Conditional loss,Marginal loss,Validation loss,Conditional Validation loss,Marginal Validation loss
+50,1.5892159941259212,0.0,1.5892159941259212,1.5155186105071166,0.2095122280741416,0.13415032991921916,0,0,8.174796104431152,8.174798727035522,0,0,0,0,0

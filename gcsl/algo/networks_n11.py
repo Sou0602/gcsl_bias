@@ -383,6 +383,37 @@ class DiscreteStochasticGoalPolicy_m(nn.Module, policy.GoalConditionedPolicy):
     def t_marg_forward(self,obs,goal,horizon = None):
         return self.t_marg_net.forward(obs,goal, horizon = horizon)
 
+    def act_vectorized_buffer(self, obs, goal, horizon=None, greedy=False, noise=0,
+                       marginal_policy=None):
+        obs = torch.tensor(obs, dtype=torch.float32)
+        goal = torch.tensor(goal, dtype=torch.float32)
+
+        if horizon is not None:
+            horizon = torch.tensor(horizon, dtype=torch.float32)
+
+        logits = self.forward(obs, goal, horizon=horizon)
+        #marginal_logits = self.t_marg_forward(obs, goal, horizon=horizon)
+        #logits -= marginal_logits
+        eps = 0.00001
+        eps1 = 0.00002
+        # logits -= marginal_logits
+        noisy_logits = logits * (1 - noise)
+        #m_noisy_logits = marginal_logits * (1)
+        probs_sg = torch.softmax(noisy_logits, 1) + eps
+        #probs_s = torch.softmax(m_noisy_logits, 1) + eps1
+        #probs = torch.div(probs_sg, probs_s)
+        #pdb.set_trace()
+        #probs = probs/torch.sum(probs,dim = 1)
+        #logits = torch.logit(probs,eps = 1e-6)
+        #noisy_logits = logits
+        #probs = torch.softmax(noisy_logits, 1)
+        probs = probs_sg/torch.sum(probs_sg, dim = 1)
+        if greedy:
+            samples = torch.argmax(probs, dim=-1)
+        else:
+            samples = torch.distributions.categorical.Categorical(probs=probs).sample()
+        return ptu.to_numpy(samples)
+
     def act_vectorized(self, obs, goal, horizon=None, greedy=False, noise=0,
                        marginal_policy=None):
         obs = torch.tensor(obs, dtype=torch.float32)
@@ -511,6 +542,147 @@ class DiscreteStochasticGoalPolicy_n(nn.Module, policy.GoalConditionedPolicy):
 
     def process_horizon(self, horizon):
         return horizon
+
+class IndependentDiscretizedStochasticGoalPolicy_m(nn.Module, policy.GoalConditionedPolicy):
+    def __init__(self, env, **kwargs):
+        super(IndependentDiscretizedStochasticGoalPolicy_m, self).__init__()
+
+        self.action_space = env.action_space
+        self.n_dims = self.action_space.n_dims
+        self.granularity = self.action_space.granularity
+        dim_out = self.n_dims * self.granularity
+        self.dim_out = dim_out
+        self.net = StateGoalNetwork(env, dim_out=self.dim_out, **kwargs)
+        self.marg_net = StateGoalNetwork_m(env, dim_out=self.dim_out , **kwargs)
+        self.t_marg_net = StateGoalNetwork_m(env, dim_out=self.dim_out , **kwargs)
+        self.cond_loss = 0
+        self.marg_loss = 0
+
+    def flattened(self, tensor):
+        # tensor expected to be n x self.n_dims
+        multipliers = self.granularity ** torch.tensor(np.arange(self.n_dims))
+        flattened = (tensor * multipliers).sum(1)
+        return flattened.int()
+
+    def unflattened(self, tensor):
+        # tensor expected to be n x 1
+        digits = []
+        output = tensor
+        for _ in range(self.n_dims):
+            digits.append(output % self.granularity)
+            output = output // self.granularity
+        uf = torch.stack(digits, dim=-1)
+        return uf
+
+    def forward(self, obs, goal, horizon=None):
+        return self.net.forward(obs, goal, horizon=horizon)
+
+    def marg_forward(self,obs,goal,horizon = None):
+        return self.marg_net.forward(obs,goal, horizon = horizon)
+
+    def t_marg_forward(self,obs,goal,horizon = None):
+        return self.t_marg_net.forward(obs,goal, horizon = horizon)
+
+    def act_vectorized_buffer(self, obs, goal, horizon=None, greedy=False, noise=0, marginal_policy=None):
+        obs = torch.tensor(obs, dtype=torch.float32)
+        goal = torch.tensor(goal, dtype=torch.float32)
+
+        if horizon is not None:
+            horizon = torch.tensor(horizon, dtype=torch.float32)
+
+        logits = self.forward(obs, goal, horizon=horizon)
+        logits = logits.view(-1, self.n_dims, self.granularity)
+        noisy_logits = logits * (1 - noise)
+        probs = torch.softmax(noisy_logits, 2)
+
+        if greedy:
+            samples = torch.argmax(probs, dim=-1)
+        else:
+            samples = torch.distributions.categorical.Categorical(probs=probs).sample()
+        samples = self.flattened(samples)
+        if greedy:
+            samples = ptu.to_numpy(samples)
+            random_samples = np.random.choice(self.action_space.n, size=len(samples))
+            return np.where(np.random.rand(len(samples)) < noise,
+                            random_samples,
+                            samples,
+                            )
+        return ptu.to_numpy(samples)
+
+    def act_vectorized(self, obs, goal, horizon=None, greedy=False, noise=0, marginal_policy=None):
+        obs = torch.tensor(obs, dtype=torch.float32)
+        goal = torch.tensor(goal, dtype=torch.float32)
+
+        if horizon is not None:
+            horizon = torch.tensor(horizon, dtype=torch.float32)
+
+        logits = self.forward(obs, goal, horizon=horizon)
+        logits = logits.view(-1, self.n_dims, self.granularity)
+        marginal_logits = self.marg_forward(obs, goal, horizon=horizon)
+        marginal_logits = marginal_logits.view(-1, self.n_dims, self.granularity)
+        eps = 0.00001
+        eps1 = 0.00002
+        # logits -= marginal_logits
+        noisy_logits = logits * (1 - noise)
+        m_noisy_logits = marginal_logits * (1)
+        probs_sg = torch.softmax(noisy_logits, 2) + eps
+        probs_s = torch.softmax(m_noisy_logits, 2) + eps1
+        #pdb.set_trace()
+        probs = torch.div(probs_sg, probs_s)
+        probs = torch.div(probs_sg, probs_s)/ torch.sum(probs, dim=1)
+
+        if greedy:
+            samples = torch.argmax(probs, dim=-1)
+        else:
+            samples = torch.distributions.categorical.Categorical(probs=probs).sample()
+        samples = self.flattened(samples)
+        if greedy:
+            samples = ptu.to_numpy(samples)
+            random_samples = np.random.choice(self.action_space.n, size=len(samples))
+            return np.where(np.random.rand(len(samples)) < noise,
+                            random_samples,
+                            samples,
+                            )
+        return ptu.to_numpy(samples)
+
+    def nll(self, obs, goal, actions, horizon=None):
+        actions_perdim = self.unflattened(actions)
+        # print(actions, self.flattened(actions_perdim))
+        actions_perdim = actions_perdim.view(-1)
+
+        logits = self.forward(obs, goal, horizon=horizon)
+        logits_perdim = logits.view(-1, self.granularity)
+
+        marginal_logits = self.marg_forward(obs, goal, horizon=horizon)
+        marginal_logits_perdim = marginal_logits.view(-1, self.granularity)
+
+        loss_perdim = CrossEntropyLoss(aggregate=None, label_smoothing=0)(logits_perdim, actions_perdim, weights=None)
+        loss = loss_perdim.reshape(-1, self.n_dims)
+        mloss_perdim = CrossEntropyLoss(aggregate=None, label_smoothing=0)(marginal_logits_perdim, actions_perdim, weights=None)
+        mloss = mloss_perdim.reshape(-1,self.n_dims)
+        self.cond_loss = loss.sum(1)
+        self.marg_loss = mloss.sum(1)
+        return loss.sum(1) + mloss.sum(1)
+
+    def probabilities(self, obs, goal, horizon=None):
+        """
+        TODO(dibyaghosh): actually implement
+        """
+        raise NotImplementedError()
+
+    def entropy(self, obs, goal, horizon=None):
+        logits = self.forward(obs, goal, horizon=horizon)
+        logits = logits.view(-1, self.n_dims, self.granularity)
+        probs = torch.softmax(noisy_logits, 2)
+        Z = torch.logsumexp(logits, dim=2)
+        return (Z - torch.sum(probs * logits, 2)).sum(1)
+
+    def soft_update(self,tau):
+        local_model = self.marg_net.net
+        target_model = self.t_marg_net.net
+
+        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
+            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
 
 class IndependentDiscretizedStochasticGoalPolicy(nn.Module, policy.GoalConditionedPolicy):
