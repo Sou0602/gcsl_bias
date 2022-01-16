@@ -1,13 +1,4 @@
-# Goal-Conditioned Supervised Learning (GCSL)
 
-This repository provides an implementation of Goal-Conditioned Supervised Learning (GCSL), as proposed in *Learning to Reach Goals via Iterated Supervised Learning*
-The manuscript is available on [arXiv](https://arxiv.org/abs/1912.06088)
-
-If you use this codebase, please cite
-
-    Dibya Ghosh, Abhishek Gupta, Justin Fu, Ashwin Reddy, Coline Devin, Benjamin Eysenbach, Sergey Levine. Learning to Reach Goals via Iterated Supervised Learning
-
-Bibtex source is provided at the bottom of the Readme.
 
 
 ## Setup
@@ -57,12 +48,3 @@ The directory structure currently looks like this:
 Please file an issue if you have trouble running this code.
 
 
-## Bibtex
-
-    @article{Ghosh2019LearningTR,
-    title={Learning To Reach Goals Without Reinforcement Learning},
-    author={Dibya Ghosh and Abhishek Gupta and Justin Fu and Ashwin Reddy and Coline Devin and Benjamin Eysenbach and Sergey Levine},
-    journal={ArXiv},
-    year={2019},
-    volume={abs/1912.06088}
-    }
