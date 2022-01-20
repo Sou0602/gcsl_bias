@@ -152,11 +152,11 @@ class GCSL:
         if self.imbalanced_goals:
             # print('Goal_Space_Low',self.env.goal_space.low.flatten()[0])
             # print('Goal_Space_High',self.env.goal_space.high.flatten()[0])
-            g0_low = self.env.goal_space.low.flatten()[0]
-            g0_high = self.env.goal_space.high.flatten()[0]
+            g0_low = self.env.goal_space.low.flatten()
+            g0_high = self.env.goal_space.high.flatten()
             #g0_avg = (g0_high + g0_low) / 2
             #left = np.random.rand() < 0.8
-
+            '''''
             g = g0_high
             goal_state = self.env.sample_goal()
             goal = self.env.extract_goal(goal_state)
@@ -167,10 +167,14 @@ class GCSL:
                 if g0 < g:
                     goal = goal_0
                     g = g0
+            '''''
             # print('goal_0', goal[0])
+            t = np.random.rand()
+            goal_state = self.env.sample_goal()
+            goal = self.env.extract_goal(goal_state)
+            goal = t * g0_low + (1 - t) * g0_high
             goal_state[4:8] = goal
             goal_state[8:] = goal
-
         else:
             # print('No Bias')
             goal_state = self.env.sample_goal()

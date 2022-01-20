@@ -10,7 +10,7 @@ Main function defined up top. Helpers below.
 def get_params(env, env_params):
     env = discretize_environment(env, env_params)
     policy = default_markov_policy(env, env_params)
-    m_policy = default_markov_policy_me(env, env_params)
+    m_policy = default_markov_policy_mh(env, env_params)
     buffer_kwargs = dict(
         env=env,
         max_trajectory_length=get_horizon(env_params),
@@ -30,6 +30,23 @@ def discretize_environment(env, env_params):
     granularity = env_params.get('action_granularity', 3)
     env_discretized = DiscretizedActionEnv(env, granularity=granularity)
     return env_discretized
+
+def default_markov_policy_mh(env, env_params):
+    assert isinstance(env.action_space, Discrete)
+    if env.action_space.n > 100: # Too large to maintain single action for each
+        policy_class = networks_ne.IndependentDiscretizedStochasticGoalPolicy_m
+    else:
+        policy_class = networks_ne.DiscreteStochasticGoalPolicy_mh
+    return policy_class(
+                env,
+                state_embedding=None,
+                goal_embedding=None,
+                layers=[400, 300], #[400, 300], # TD3-size
+                max_horizon=None, # Do not pass in horizon.
+                # max_horizon=get_horizon(env_params), # Use this line if you want to include horizon into the policy
+                freeze_embeddings=True,
+                add_extra_conditioning=False,
+            )
 
 def default_markov_policy_me(env, env_params):
     assert isinstance(env.action_space, Discrete)

@@ -20,7 +20,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
 
     # Algo
     from gcsl.algo import buffer, gcsl_n11, variants_n11, networks_n11, gcsl_n11_sto, gcsl_n11_sto_1,gcsl_n11_sto_2,\
-        gcsl_n11_sto_3,gcsl_n11_sto_4,gcsl_n11_sto_5, gcsl_ne, variants_ne, networks_ne
+        gcsl_n11_sto_3,gcsl_n11_sto_4,gcsl_n11_sto_5, gcsl_ne, variants_ne, networks_ne, gcsl_nh_sto
 
     ptu.set_gpu(gpu)
     if not gpu:
@@ -43,7 +43,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
     )
     '''''
     if K == 0:
-        algo = gcsl_ne.GCSL(
+        algo = gcsl_nh_sto.GCSL(
         env,
         policy,
         m_policy,
@@ -92,7 +92,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
         )
 
 
-    exp_prefix = 'example/%s/ne_sto_nobias_onp%d/' % (env_name,K)
+    exp_prefix = 'example/%s/nh_sto_nobias_onp%d/' % (env_name,K)
 
     with log_utils.setup_logger(exp_prefix=exp_prefix, log_base_dir=output_dir):
         algo.train()

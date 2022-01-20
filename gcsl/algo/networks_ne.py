@@ -362,6 +362,61 @@ class CrossEntropyLoss(nn.Module):
         elif self.aggregate is None:
             return ce
 
+class DiscreteStochasticGoalPolicy_mh(nn.Module, policy.GoalConditionedPolicy):
+    def __init__(self, env, **kwargs):
+        super(DiscreteStochasticGoalPolicy_mh, self).__init__()
+
+        self.action_space = env.action_space
+        self.dim_out = env.action_space.n
+        self.net = StateGoalNetwork(env, dim_out=self.dim_out, **kwargs)
+
+    def forward(self, obs, goal, horizon=None):
+        return self.net.forward(obs, goal, horizon=horizon)
+
+    def act_vectorized(self, obs, goal, horizon=None, greedy=False, noise=0,
+                       marginal_policy=None):
+        obs = torch.tensor(obs, dtype=torch.float32)
+        goal = torch.tensor(goal, dtype=torch.float32)
+
+        if horizon is not None:
+            horizon = torch.tensor(horizon, dtype=torch.float32)
+
+        logits = self.forward(obs, goal, horizon=horizon)
+        if marginal_policy is not None:
+            dummy_goal = torch.zeros_like(goal)
+            marginal_logits = marginal_policy.forward(obs, dummy_goal, horizon)
+            logits -= marginal_logits
+        noisy_logits = logits * (1 - noise)
+        probs = torch.softmax(noisy_logits, 1)
+        if greedy:
+            samples = torch.argmax(probs, dim=-1)
+        else:
+            samples = torch.distributions.categorical.Categorical(probs=probs).sample()
+        return ptu.to_numpy(samples)
+
+    def nll(self, obs, goal, actions,ref_pol, horizon=None):
+        logits = ref_pol.forward(obs, goal, horizon=horizon)
+        probs = torch.softmax(logits, 1)
+        log_pro = torch.log(probs)
+        ent = -probs*log_pro
+
+        e_logits = torch.logit(ent,eps=1e-6)
+        #return CrossEntropyLoss(aggregate=None, label_smoothing=0)(e_logits, actions, weights=None, )
+        return -torch.sum(ent,dim = 1)
+    def probabilities(self, obs, goal, horizon=None):
+        logits = self.forward(obs, goal, horizon=horizon)
+        probs = torch.softmax(logits, 1)
+        return probs
+
+    def entropy(self, obs, goal, horizon=None):
+        logits = self.forward(obs, goal, horizon=horizon)
+        probs = torch.softmax(logits, 1)
+        Z = torch.logsumexp(logits, dim=1)
+        return Z - torch.sum(probs * logits, 1)
+
+    def process_horizon(self, horizon):
+        return horizon
+
 class DiscreteStochasticGoalPolicy_me(nn.Module, policy.GoalConditionedPolicy):
     def __init__(self, env, **kwargs):
         super(DiscreteStochasticGoalPolicy_me, self).__init__()

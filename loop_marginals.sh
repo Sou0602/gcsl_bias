@@ -1,14 +1,14 @@
-for s in 0 
-do 
-    for e in pusher door lunar pointmass_rooms pointmass_empty
-    do
-	echo Environment $e Seed $s
-        #python experiments/gcsl_example.py -S $s -E $e &
+#for s in 0 
+#do 
+#    for e in pusher door lunar pointmass_rooms pointmass_empty
+#    do
+#	echo Environment $e Seed $s
+#        #python experiments/gcsl_example.py -S $s -E $e &
 	#python experiments/gcsl_example_n11.py -S $s -E $e &
-	python experiments/gcsl_example_ne.py -S $s -E $e &
-    done
-    wait
-done
+#	python experiments/gcsl_example_ne.py -S $s -E $e &
+ #   done
+#    wait
+#done
 
 #
 #for s in 1
@@ -44,5 +44,19 @@ done
 #wait
 
 
+#for k in 2 3 
+#do
+#	python experiments/gcsl_example_n11.py -K $k &
+#	python experiments/gcsl_example.py -K $k &
+#done
+#wait
+
+
+for k in 4 3 5
+do
+	python experiments/gcsl_example_n11.py -K $k &
+	python experiments/gcsl_example.py -K $k &
+done
+wait
 
 exit 0

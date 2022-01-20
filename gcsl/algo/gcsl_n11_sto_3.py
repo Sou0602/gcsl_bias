@@ -152,6 +152,7 @@ class GCSL:
             # print('Goal_Space_High',self.env.goal_space.high.flatten()[0])
             g_low = self.env.goal_space.low.flatten()
             g_high = self.env.goal_space.high.flatten()
+            '''''
             g0_low = g_low[0]
             g0_high = g_high[0]
             g1_low = g_low[1]
@@ -171,6 +172,20 @@ class GCSL:
                 self.goal_side = 1
                 goal[0] = g0_high - 0.001 * np.random.rand()
                 goal[1] = g1_high - 0.001 * np.random.rand()
+            '''''
+            left = np.random.rand() < 0.95
+            goal_state = self.env.sample_goal()
+            goal = self.env.extract_goal(goal_state)
+            if left:
+                goal[2] = g_low[2] + (g_high[2] - g_low[2])/4 * np.random.rand()
+                goal[3] = g_low[3]
+                goal[0] = g_low[0]
+                goal[1] = g_low[1]
+            else:
+                goal[2] = g_high[2] - (g_high[2] - g_low[2])/4 * np.random.rand()
+                goal[3] = g_low[3]
+                goal[0] = g_high[0]
+                goal[1] = g_high[1]
 
             goal_state[4:8] = goal
             goal_state[8:] = goal
@@ -461,7 +476,10 @@ class GCSL:
         success_vec = np.zeros(eval_episodes)
 
         for index in tqdm.trange(eval_episodes, leave=True):
-            states, actions, goal_state = self.sample_trajectory(noise=0, greedy=greedy)
+            if self.imbalanced_goals:
+                states, actions, goal_state = self.sample_trajectory_buffer(noise=0, greedy=greedy)
+            else:
+                states, actions, goal_state = self.sample_trajectory(noise=0, greedy=greedy)
             all_actions.extend(actions)
             all_states.append(states)
             all_goal_states.append(goal_state)

@@ -19,7 +19,8 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
     from gcsl.envs.env_utils import DiscretizedActionEnv
 
     # Algo
-    from gcsl.algo import buffer, gcsl_n11, variants_n11, networks_n11, gcsl_n11_sto, gcsl_n11_sto_1,gcsl_n11_sto_2,gcsl_n11_sto_3,gcsl_n11_sto_4,gcsl_n11_sto_5
+    from gcsl.algo import buffer, gcsl_n11, variants_n11, networks_n11, gcsl_n11_sto, gcsl_n11_sto_1,gcsl_n11_sto_2,\
+        gcsl_n11_sto_3,gcsl_n11_sto_4,gcsl_n11_sto_5,gcsl_n11_sto_1d
 
     ptu.set_gpu(gpu)
     if not gpu:
@@ -42,7 +43,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
     )
     '''''
     if K == 0:
-        algo = gcsl_n11_sto.GCSL(
+        algo = gcsl_n11_sto_1d.GCSL(
         env,
         policy,
         replay_buffer,
@@ -90,7 +91,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
         )
 
 
-    exp_prefix = 'example/%s/norm_sto_nb1_on%2d/' % (env_name,K)
+    exp_prefix = 'example/%s/norm_offp_s%d/' % (env_name,K)
 
     with log_utils.setup_logger(exp_prefix=exp_prefix, log_base_dir=output_dir):
         algo.train()
