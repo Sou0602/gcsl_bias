@@ -120,7 +120,7 @@ class GCSL:
         #pdb.set_trace()
         self.log_tensorboard = log_tensorboard and tensorboard_enabled
         self.summary_writer = None
-        self.imbalanced_goals = False
+        self.imbalanced_goals = True
         self.imb_init_dist = False
         self.goal_side = 0
         self.init_side = 0
@@ -211,7 +211,7 @@ class GCSL:
             observation = self.env.observation(state)
             horizon = np.arange(self.max_path_length) >= (
                         self.max_path_length - 1 - t)  # Temperature encoding of horizon
-            action = self.policy.act_vectorized_buffer(observation[None], goal[None], horizon=horizon[None], greedy=greedy,
+            action = self.policy.act_vectorized(observation[None], goal[None], horizon=horizon[None], greedy=greedy,
                                                 noise=noise)[0]
 
             if not self.is_discrete_action:

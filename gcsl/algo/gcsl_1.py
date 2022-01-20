@@ -148,8 +148,8 @@ class GCSL:
         if self.imbalanced_goals:
             # print('Goal_Space_Low',self.env.goal_space.low.flatten()[0])
             # print('Goal_Space_High',self.env.goal_space.high.flatten()[0])
-            g0_low = self.env.goal_space.low.flatten()[0]
-            g0_high = self.env.goal_space.high.flatten()[0]
+            g0_low = self.env.goal_space.low.flatten()
+            g0_high = self.env.goal_space.high.flatten()
             #g0_avg = (g0_high + g0_low) / 2
             #left = np.random.rand() < 0.8
 
@@ -158,6 +158,7 @@ class GCSL:
             goal = self.env.extract_goal(goal_state)
             #print(goal)
             #print(goal_state)
+            '''''
             for k in range(5):
                 goal_state = self.env.sample_goal()
                 goal_0 = self.env.extract_goal(goal_state)
@@ -167,6 +168,9 @@ class GCSL:
                     g = g0
             # print('goal_0', goal[0])
             #print(goal_state)
+            '''''
+            t = np.random.rand()
+            goal = t*g0_low + (1-t)*g0_high
             goal_state[4:8] = goal
             goal_state[8:] = goal
             #print(goal_state)
