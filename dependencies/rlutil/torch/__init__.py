@@ -22,7 +22,7 @@ def _replace_funcs(global_dict):
         # hacky way of determining if device is an argument
         # (cannot use inspect because torch functions are builtins)
         if _key == 'ScriptClass':
-            global_dict[_key] = value
+            global_dict[_key] = _value
             continue
         else:
             if _value.__doc__ and 'device (:class:`torch.device`, optional):' in _value.__doc__:

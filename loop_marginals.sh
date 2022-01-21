@@ -52,7 +52,7 @@
 #wait
 
 
-for k in 4 3 5
+for k in 4 3
 do
 	python experiments/gcsl_example_n11.py -K $k &
 	python experiments/gcsl_example.py -K $k &
