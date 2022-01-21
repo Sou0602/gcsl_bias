@@ -11,7 +11,7 @@ df_gcsl_1 = pd.read_csv('data/example/pusher/gcsl_offline_s1/2022_01_17_00_39_05
 df_gcsl_2 = pd.read_csv('data/example/pusher/gcsl_offp_s2/2022_01_17_18_17_30/progress.csv')
 df_gcsl_3 = pd.read_csv('data/example/pusher/gcsl_offp_s3/2022_01_18_18_46_17/progress.csv')
 df_gcsl_4 = pd.read_csv('data/example/pusher/gcsl_offp_s4/2022_01_18_18_46_17/progress.csv')
-df_gcsl_5 = pd.read_csv('data/example/pusher/gcsl_offp_s5/2022_01_18_01_40_00/progress.csv')
+df_gcsl_5 = pd.read_csv('data/example/pusher/gcsl_offp_s5/2022_01_20_09_45_50/progress.csv')
 
 
 time_0 = df_gcsl_0['timesteps'].values
@@ -34,7 +34,7 @@ n_df_gcsl_1 = pd.read_csv('data/example/pusher/norm_offline_s1/2022_01_17_10_32_
 n_df_gcsl_2 = pd.read_csv('data/example/pusher/norm_offp_s2/2022_01_17_22_04_54/progress.csv')
 n_df_gcsl_3 = pd.read_csv('data/example/pusher/norm_offp_s3/2022_01_18_18_46_17/progress.csv')
 n_df_gcsl_4 = pd.read_csv('data/example/pusher/norm_offp_s4/2022_01_18_18_46_17/progress.csv')
-n_df_gcsl_5 = pd.read_csv('data/example/pusher/norm_offp_s5/2022_01_18_01_40_00/progress.csv')
+n_df_gcsl_5 = pd.read_csv('data/example/pusher/norm_offp_s5/2022_01_20_09_45_50/progress.csv')
 
 
 n_time_0 = n_df_gcsl_0['Validation loss'].values
@@ -63,14 +63,14 @@ n_success_5 = n_df_gcsl_5['Eval success ratio'].values
 #plt.plot(time_4,success_4,'m',label = 'M4')
 #plt.plot(time_5,success_5,'y',label = 'M5')
 
-plt.plot(time_4,success_4,'b', label = 'M4')
-plt.plot(n_time_4,n_success_4,'r', label = 'N_M4')
+plt.plot(time_5,success_5,'b', label = 'M5')
+plt.plot(n_time_5,n_success_5,'r', label = 'N_M5')
 #plt.plot(time_1,success_1,'g', label = 'N_M0')
 
 plt.xlabel('TimeSteps')
 plt.ylabel('Success')
 plt.legend()
-plt.title('Success - M4.2  -' + env )
+plt.title('Success - M5.1  -' + env )
 plt.grid()
 plt.show()
 #plt.savefig('plots_new/'+env+'_loss/Success.jpg')

@@ -398,11 +398,16 @@ class DiscreteStochasticGoalPolicy_mh(nn.Module, policy.GoalConditionedPolicy):
         logits = ref_pol.forward(obs, goal, horizon=horizon)
         probs = torch.softmax(logits, 1)
         log_pro = torch.log(probs)
-        ent = -probs*log_pro
-
-        e_logits = torch.logit(ent,eps=1e-6)
+        logits_p = self.forward(obs,goal,horizon=horizon)
+        probs_p = torch.softmax(logits_p, 1)
+        log_pro_p = torch.log(probs_p)
+        ent_vec = -probs*log_pro
+        ent_p_vec = -probs_p*log_pro_p
+        #e_logits = torch.logit(ent,eps=1e-6)
+        ent = torch.sum(ent_vec,dim=1)
+        ent_p_vec = torch.sum(ent_p_vec,dim=1)
         #return CrossEntropyLoss(aggregate=None, label_smoothing=0)(e_logits, actions, weights=None, )
-        return -torch.sum(ent,dim = 1)
+        return (ent - ent_p_vec)**2
     def probabilities(self, obs, goal, horizon=None):
         logits = self.forward(obs, goal, horizon=horizon)
         probs = torch.softmax(logits, 1)
