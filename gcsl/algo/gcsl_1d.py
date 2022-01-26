@@ -152,9 +152,59 @@ class GCSL:
             t = np.random.rand()
             goal_state = self.env.sample_goal()
             goal = self.env.extract_goal(goal_state)
-            goal = t * g0_low + (1 - t) * g0_high
-            goal_state[4:8] = goal
-            goal_state[8:] = goal
+            ## For lunar
+            '''''
+            g1 = self.env.extract_goal(self.env.reset())
+            g2 = self.env.extract_goal(self.env.sample_goal())
+            g1[0] = g0_low[0]
+            g2[0] = g0_high[0]
+            g1[2] = g0_low[2] * 0.5
+            g2[2] = g0_high[2] * 0.5
+            goal_int = t*g1 + (1-t)*g2
+            goal[0] = goal_int[0]
+            goal[2] = goal_int[2]
+            goal[3] = g0_high[3]
+            goal[4] = g0_high[4]
+            obs_high = self.env.observation_space.low.flatten()
+            obs_low = self.env.observation_space.high.flatten()
+            obs_avg = (obs_low+obs_high)/2
+            goal_state[0] = goal[0]
+            goal_state[2] = obs_avg[2]
+            goal_state[3] = obs_avg[3]
+            goal_state[4] = goal[2]
+            goal_state[5] = obs_avg[5]
+            goal_state[6] = goal[3]
+            goal_state[7] = goal[4]
+            '''''
+            # For pointmass_rooms and pointmass_empty
+            #print('goal',goal)
+            #print('goal_state',goal_state)
+            obs_len = len(self.env.observation_space.low.flatten())
+            goal_len = len(self.env.observation_space.low.flatten())
+            g1 = g0_low
+            g2 = g0_high
+            '''''
+            g1[0] = g0_low[0] * 0.7
+            g1[1] = g0_low[1] * 0.7
+            g2[0] = g0_high[0] * 0.8
+            g2[1] = g0_low[1] * 0.6
+            goal = t * g1 + (1 - t) * g2
+            '''''
+            left = np.random.rand() < 0.5
+            #if left:
+            #    goal[0] = g0_low[0] + np.random.rand()* (0.5*(g0_high[0]-g0_low[0])/2)
+            #else:
+            #    goal[0] = g0_high[0] - np.random.rand() * (0.5*(g0_high[0] - g0_low[0])/2)
+            goal[0] = g0_high[0] * 0.85 - (0.85 * np.random.rand()) * ((g0_high[0] - g0_low[0]))
+            goal[1] = goal[0]
+            goal_state[obs_len:obs_len + goal_len] = goal
+            goal_state[obs_len + goal_len:] = goal
+            #pdb.set_trace()
+            ## For pusher and door
+            #goal = t * g0_low + (1 - t) * g0_high
+
+            #pdb.set_trace()
+
 
         else:
             # print('No Bias')
@@ -195,9 +245,27 @@ class GCSL:
         g0_low = self.env.goal_space.low.flatten()
         g0_high = self.env.goal_space.high.flatten()
         t = np.random.rand()
-        goal = t * g0_low + (1 - t) * g0_high
-        goal_state[4:8] = goal
-        goal_state[8:] = goal
+        ## For lunar
+        '''''
+        g1 = self.env.extract_goal(self.env.reset())
+        g2 = self.env.extract_goal(self.env.sample_goal())
+        g1[0] = g0_low[0]
+        g2[0] = g0_high[0]
+        g1[2] = g0_low[2] * 0.8
+        g2[2] = g0_high[2] * 0.8
+        goal = t * g1 + (1 - t) * g2
+        goal_state[0] = goal[0]
+        goal_state[4] = goal[2]
+        '''''
+        #g1 = g0_low
+        #g2 = g0_high
+        #g2[0] = g0_low[0]
+        #goal = t * g1 + (1 - t) * g2
+        #goal = t * g0_low + (1 - t) * g0_high
+        obs_len = len(self.env.observation_space.low.flatten())
+        goal_len = len(self.env.observation_space.low.flatten())
+        #goal_state[obs_len:obs_len + goal_len] = goal
+        #goal_state[obs_len + goal_len:] = goal
 
         states = []
         actions = []
@@ -410,7 +478,7 @@ class GCSL:
             if self.imbalanced_goals:
                 states, actions, goal_state = self.sample_trajectory_buffer(noise=0, greedy=greedy)
             else:
-                states, actions, goal_state = self.sample_trajectory(noise=0, greedy=greedy)
+                states, actions, goal_state = self.sample_trajectory_buffer(noise=0, greedy=greedy)
             all_actions.extend(actions)
             all_states.append(states)
             all_goal_states.append(goal_state)

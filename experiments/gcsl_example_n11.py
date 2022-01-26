@@ -43,7 +43,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
     )
     '''''
     if K == 0:
-        algo = gcsl_n11_sto_1d.GCSL(
+        algo = gcsl_n11_sto.GCSL(
         env,
         policy,
         replay_buffer,
@@ -91,7 +91,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K =0, **kwargs):
         )
 
 
-    exp_prefix = 'example/%s/norm_offp_s%d/' % (env_name,K)
+    exp_prefix = 'example/%s/norm_offpb_s%d_%d/' % (env_name,K,seed)
 
     with log_utils.setup_logger(exp_prefix=exp_prefix, log_base_dir=output_dir):
         algo.train()

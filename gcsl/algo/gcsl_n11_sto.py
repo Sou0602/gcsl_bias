@@ -120,7 +120,7 @@ class GCSL:
         #pdb.set_trace()
         self.log_tensorboard = log_tensorboard and tensorboard_enabled
         self.summary_writer = None
-        self.imbalanced_goals = True
+        self.imbalanced_goals = False
         self.imb_init_dist = False
         self.goal_side = 0
         self.init_side = 0
@@ -159,6 +159,7 @@ class GCSL:
             left = np.random.rand() < 0.8
             goal_state = self.env.sample_goal()
             goal = self.env.extract_goal(goal_state)
+            #pdb.set_trace()
             if left:
                 # print('left')
                 self.goal_side = -1
@@ -186,8 +187,8 @@ class GCSL:
         if self.imb_init_dist:
             obs_low = self.env.observation_space.low.flatten()
             obs_high = self.env.observation_space.high.flatten()
-            obs_avg = (obs_high + obs_low) / 2
-            obs_avg_ = (obs_high - obs_low) / 2
+            obs_avg = (obs_high + obs_low)/2
+            obs_avg_ = (obs_high - obs_low)/2
             state = self.env.reset()
             left = np.random.rand() < 0.8
             if left:
@@ -197,7 +198,7 @@ class GCSL:
                 state[0] = obs_high[0] - np.random.rand() * obs_avg_[0]
                 self.init_side = 1
 
-            # update sampled  goal_state to a biased initial state
+            #update sampled  goal_state to a biased initial state
             goal_state[0] = state[0]
         else:
             state = self.env.reset()
@@ -227,6 +228,7 @@ class GCSL:
         goal_state = self.env.sample_goal()
         goal = self.env.extract_goal(goal_state)
         state = self.env.reset()
+
         if self.imbalanced_goals:
             g0_low = self.env.goal_space.low.flatten()[0]
             g0_high = self.env.goal_space.high.flatten()[0]
@@ -498,7 +500,7 @@ class GCSL:
         success_vec = np.zeros(eval_episodes)
 
         for index in tqdm.trange(eval_episodes, leave=True):
-            states, actions, goal_state = self.sample_trajectory(noise=0, greedy=greedy)
+            states, actions, goal_state = self.sample_trajectory_buffer(noise=0, greedy=greedy)
             all_actions.extend(actions)
             all_states.append(states)
             all_goal_states.append(goal_state)
