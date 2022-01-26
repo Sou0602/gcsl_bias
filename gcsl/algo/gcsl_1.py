@@ -170,9 +170,16 @@ class GCSL:
             #print(goal_state)
             '''''
             t = np.random.rand()
-            goal = t*g0_low + (1-t)*g0_high
-            goal_state[4:8] = goal
-            goal_state[8:] = goal
+
+            goal_state = self.env.sample_goal()
+            goal = self.env.extract_goal(goal_state)
+            obs_len = len(self.env.observation_space.low.flatten())
+            goal_len = len(self.env.observation_space.low.flatten())
+
+            goal = g0_low + 0.5 * np.random.rand() * (g0_high - g0_low)
+
+            goal_state[obs_len:obs_len + goal_len] = goal
+            goal_state[obs_len + goal_len:] = goal
             #print(goal_state)
             #pdb.set_trace()
 

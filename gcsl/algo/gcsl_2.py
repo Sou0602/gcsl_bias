@@ -153,6 +153,7 @@ class GCSL:
             # print('Goal_Space_High',self.env.goal_space.high.flatten()[0])
             g0_low = self.env.goal_space.low.flatten()
             g0_high = self.env.goal_space.high.flatten()
+            g0_avg = (g0_high + g0_low) / 2
             '''''
             g0_avg = (g0_high + g0_low) / 2
             goals = np.zeros((5,4))
@@ -171,6 +172,9 @@ class GCSL:
             '''''
             goal_state = self.env.sample_goal()
             goal = self.env.extract_goal(goal_state)
+            obs_len = len(self.env.observation_space.low.flatten())
+            goal_len = len(self.env.observation_space.low.flatten())
+            '''''
             left = np.random.rand() < 0.95
             if left:
                 goal[2] = g0_low[2] + 0.001 * np.random.rand()
@@ -180,6 +184,17 @@ class GCSL:
                 goal[3] = g0_high[3] - 0.001 * np.random.rand()
             goal_state[4:8] = goal
             goal_state[8:] = goal
+            '''''
+            left = np.random.rand() < 0.5
+            #if left:
+            #    goal[0] = g0_low[0] + np.random.rand()*(0.1*(g0_high[0]-g0_low[0]))
+            #else:
+            #    goal[0] = g0_high[0] - np.random.rand() *(0.1*(g0_high[0] - g0_low[0]))
+            goal[0] = g0_low[0]*0.9 + (0.9/4*np.random.rand())*((g0_high[0]-g0_low[0]))
+            #goal[1] = goal[0]
+            goal[1] = goal[0]
+            goal_state[obs_len:obs_len + goal_len] = goal
+            goal_state[obs_len + goal_len:] = goal
         else:
             # print('No Bias')
             self.goal_side = 0

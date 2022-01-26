@@ -152,6 +152,8 @@ class GCSL:
             # print('Goal_Space_High',self.env.goal_space.high.flatten()[0])
             g_low = self.env.goal_space.low.flatten()
             g_high = self.env.goal_space.high.flatten()
+            g0_avg = (g_high + g_low) / 2
+            g0_avg_ = (g_high - g_low) / 2
             '''''
             g0_low = g_low[0]
             g0_high = g_high[0]
@@ -185,14 +187,25 @@ class GCSL:
             goal_state[4:8] = goal
             goal_state[8:] = goal
             '''''
-            left = np.random.rand() < 0.99
+            obs_len = len(self.env.observation_space.low.flatten())
+            goal_len = len(self.env.observation_space.low.flatten())
+            left = np.random.rand() < 0.995
             goal_state = self.env.sample_goal()
             goal = self.env.extract_goal(goal_state)
             if left:
+                #goal[2] = g_low[2] + 0.5 * g0_avg_[2] * np.random.rand()
+                #goal[3] = g_low[3] + 0.5 * g0_avg_[3] * np.random.rand()
                 goal[0] = goal[2]
                 goal[1] = goal[3]
-                goal_state[4:8] = goal
-                goal_state[8:] = goal
+            else:
+                #goal[2] = g_high[2] - 0.5 * g0_avg_[2] * np.random.rand()
+                #goal[3] = g_high[3] - 0.5 * g0_avg_[3] * np.random.rand()
+                #goal[0] = goal[2]
+                #goal[1] = goal[3]
+                pass
+
+            goal_state[obs_len:obs_len+goal_len] = goal
+            goal_state[obs_len+goal_len:] = goal
             # print('goal_0', goal[0])
 
         else:

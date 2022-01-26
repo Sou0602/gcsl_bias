@@ -40,7 +40,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K=0, **kwargs):
     )
     '''''
     if K == 0:
-        algo = gcsl_1d.GCSL(
+        algo = gcsl.GCSL(
         env,
         policy,
         replay_buffer,
@@ -72,7 +72,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K=0, **kwargs):
         )
 
     if K == 4:
-        algo = gcsl_4.GCSL(
+        algo = gcsl_1d.GCSL(
         env,
         policy,
         replay_buffer,
@@ -88,7 +88,7 @@ def run(output_dir='/tmp', env_name='pusher', gpu=True, seed=0,K=0, **kwargs):
         )
 
 
-    exp_prefix = 'example/%s/gcsl_offp_s%d/' % (env_name,K,)
+    exp_prefix = 'example/%s/gcsl_offpb_s%d_%d/' % (env_name,K,seed)
 
     with log_utils.setup_logger(exp_prefix=exp_prefix, log_base_dir=output_dir):
         algo.train()

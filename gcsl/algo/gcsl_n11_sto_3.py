@@ -150,8 +150,9 @@ class GCSL:
         if self.imbalanced_goals:
             # print('Goal_Space_Low',self.env.goal_space.low.flatten()[0])
             # print('Goal_Space_High',self.env.goal_space.high.flatten()[0])
-            g_low = self.env.goal_space.low.flatten()
-            g_high = self.env.goal_space.high.flatten()
+            g0_low = self.env.goal_space.low.flatten()
+            g0_high = self.env.goal_space.high.flatten()
+            g0_avg = (g0_high + g0_low) / 2
             '''''
             g0_low = g_low[0]
             g0_high = g_high[0]
@@ -176,6 +177,7 @@ class GCSL:
             left = np.random.rand() < 0.95
             goal_state = self.env.sample_goal()
             goal = self.env.extract_goal(goal_state)
+            '''''
             if left:
                 goal[2] = g_low[2] + (g_high[2] - g_low[2])/4 * np.random.rand()
                 goal[3] = g_low[3]
@@ -189,9 +191,37 @@ class GCSL:
 
             goal_state[4:8] = goal
             goal_state[8:] = goal
-
+            '''''
             # print('goal_0', goal[0])
+            ## For lunar
+            g1 = self.env.extract_goal(self.env.reset())
+            g2 = self.env.extract_goal(self.env.sample_goal())
+            g1[0] = g0_low[0]
+            g2[0] = g0_high[0]*0.5
+            g1[2] = g0_low[2] * 0.6
+            g2[2] = g0_high[2] * 0.3
+            t = np.random.rand()
+            goal_int = t*g1 + (1-t)*g2
 
+            goal[0] = g0_low[0]  * 0.3 + 0.3 * (g0_high[0] - g0_low[0]) * np.random.rand()
+            goal[1] = g0_avg[1]
+            goal[2] = g0_low[2]
+            goal[3] = g0_high[3]
+            goal[4] = g0_high[4]
+
+            #goal[2] = goal[0]
+
+            obs_high = self.env.observation_space.low.flatten()
+            obs_low = self.env.observation_space.high.flatten()
+            obs_avg = (obs_low+obs_high)/2
+            goal_state[0] = goal[0]
+            goal_state[1] = goal[1]
+            goal_state[2] = goal[0]#obs_avg[2]
+            goal_state[3] = goal[0]#obs_avg[3]
+            goal_state[4] = goal[2]
+            goal_state[5] = obs_low[5]
+            goal_state[6] = goal[3]
+            goal_state[7] = goal[4]
         else:
             # print('No Bias')
             self.goal_side = 0
